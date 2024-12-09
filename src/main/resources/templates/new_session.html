@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Добавить сеанс</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body, html {margin: 0; padding: 0; height: 100%;}
+        .bg-image {background-image: url('https://konteks-mebel.ru/upload/uf/d07/zuqejgmo64m30p5rkf7oajna7fyi531l.jpg');
+            height: 100vh; background-size: cover; background-position: center; display: flex; justify-content: center; align-items: center;}
+        .navbar {background-color: rgba(108, 117, 125, 0.8);}
+        .form-container {background-color: rgba(255, 255, 255, 0.9); padding: 30px; border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); margin: 0;}
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+        <a class="navbar-brand text-white" href="/">Массажный салон</a>
+    </div>
+</nav>
+<div class="bg-image">
+    <div class="container">
+        <div class="form-container mx-auto col-md-8">
+            <h1 class="text-center">Добавление сеанса</h1>
+            <form th:action="@{/admin/save}" th:object="${massageSession}" method="post">
+                <!-- Включение CSRF-токена -->
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                <div class="form-group mb-3">
+                    <label for="client">Клиент:</label>
+                    <select class="form-control" id="client" th:field="*{client}" required>
+                        <option th:each="client : ${clients}" th:value="${client.id}" th:text="${client.username}"></option>
+                    </select>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="masseur">Массажист:</label>
+                    <select class="form-control" id="masseur" th:field="*{masseur}" required>
+                        <option th:each="masseur : ${masseurs}" th:value="${masseur.id}" th:text="${masseur.username}"></option>
+                    </select>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="serviceType">Тип массажа:</label>
+                    <select class="form-control" id="serviceType" th:field="*{serviceType}" required>
+                        <option disabled selected value="">-- Выберите тип массажа --</option>
+                        <option th:each="type : ${massageTypes}" th:value="${type}" th:text="${type.displayName}"></option>
+                    </select>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="sessionDate">Дата сеанса:</label>
+                    <input type="date" class="form-control" id="sessionDate" th:field="*{sessionDate}" required/>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="startTime">Время начала:</label>
+                    <input type="time" class="form-control" id="startTime" th:field="*{startTime}" required/>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="price">Цена (руб.):</label>
+                    <input type="number" step="0.01" class="form-control" id="price" th:field="*{price}" required/>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="duration">Продолжительность (мин):</label>
+                    <input type="number" class="form-control" id="duration" th:field="*{duration}" required/>
+                </div>
+
+                <button type="submit" class="btn btn-secondary">Сохранить</button>
+                <a href="/admin" class="btn btn-secondary">Отмена</a>
+                <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>
