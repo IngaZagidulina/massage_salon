@@ -1,3 +1,7 @@
+/**
+ * REST-контроллер для работы с пользователями.
+ * Позволяет просматривать, создавать, обновлять и удалять пользователей (только для ADMIN).
+ */
 package com.example.massagesalon;
 
 import jakarta.validation.Valid;
@@ -14,17 +18,33 @@ public class UserApiController {
 
     private final UserService userService;
 
+    /**
+     * Конструктор контроллера пользователей.
+     *
+     * @param userService сервис для управления пользователями
+     */
     @Autowired
     public UserApiController(UserService userService) {
         this.userService = userService;
     }
 
+    /**
+     * Получить список всех пользователей (только для ADMIN).
+     *
+     * @return список пользователей
+     */
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public List<User> getAllUsers() {
         return userService.findAllUsers();
     }
 
+    /**
+     * Получить пользователя по его ID (только для ADMIN).
+     *
+     * @param id идентификатор пользователя
+     * @return пользователь или 404, если не найден
+     */
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
@@ -35,6 +55,12 @@ public class UserApiController {
         return ResponseEntity.notFound().build();
     }
 
+    /**
+     * Создать нового пользователя (только для ADMIN).
+     *
+     * @param user данные о пользователе
+     * @return созданный пользователь или 400, если пользователь с таким логином уже существует
+     */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
@@ -45,6 +71,13 @@ public class UserApiController {
         return ResponseEntity.ok(user);
     }
 
+    /**
+     * Обновить данные существующего пользователя (только для ADMIN).
+     *
+     * @param id идентификатор пользователя
+     * @param userDetails новые данные
+     * @return обновленный пользователь или 404, если не найден
+     */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<User> updateUser(@PathVariable Long id, @Valid @RequestBody User userDetails) {
@@ -58,6 +91,12 @@ public class UserApiController {
         return ResponseEntity.ok(user);
     }
 
+    /**
+     * Удалить пользователя по ID (только для ADMIN).
+     *
+     * @param id идентификатор пользователя
+     * @return пустой ответ со статусом 204 или 404, если не найден
+     */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {

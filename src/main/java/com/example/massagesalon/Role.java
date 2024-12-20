@@ -1,3 +1,7 @@
+/**
+ * Перечисление ролей пользователей в системе.
+ * Каждая роль реализует интерфейс GrantedAuthority для интеграции со Spring Security.
+ */
 package com.example.massagesalon;
 
 import org.springframework.security.core.GrantedAuthority;

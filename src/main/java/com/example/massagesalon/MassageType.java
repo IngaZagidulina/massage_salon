@@ -1,3 +1,7 @@
+/**
+ * Перечисление типов массажа.
+ * Содержит различные виды массажа с локализованными названиями.
+ */
 package com.example.massagesalon;
 
 public enum MassageType {
@@ -13,6 +17,11 @@ public enum MassageType {
         this.displayName = displayName;
     }
 
+    /**
+     * Получить локализованное название типа массажа.
+     *
+     * @return строковое представление типа массажа
+     */
     public String getDisplayName() {
         return displayName;
     }

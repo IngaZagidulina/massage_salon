@@ -1,3 +1,7 @@
+/**
+ * Класс запуска Spring Boot приложения "MassageSalonApplication".
+ * Запускает встроенный веб-сервер и инициализирует все необходимые компоненты.
+ */
 package com.example.massagesalon;
 
 import org.springframework.boot.SpringApplication;

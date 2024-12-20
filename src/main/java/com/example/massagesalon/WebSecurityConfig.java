@@ -1,3 +1,7 @@
+/**
+ * Конфигурация безопасности веб-приложения с использованием Spring Security.
+ * Определяет правила доступа к маршрутам, роль и страницу логина.
+ */
 package com.example.massagesalon;
 
 import org.springframework.context.annotation.Bean;
@@ -22,11 +26,23 @@ import java.util.Collection;
 @EnableMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig {
 
+    /**
+     * Бин для кодирования паролей BCrypt.
+     *
+     * @return кодировщик паролей
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * Настройка фильтра безопасности.
+     *
+     * @param http объект конфигурации HttpSecurity
+     * @return настроенная конфигурация цепочки фильтров безопасности
+     * @throws Exception при ошибках конфигурации
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
@@ -52,6 +68,7 @@ public class WebSecurityConfig {
         };
 
         http
+                // Игнорируем CSRF для API запросов
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/sessions/**", "/api/users/**").hasRole("ADMIN")

@@ -1,3 +1,8 @@
+/**
+ * REST-контроллер для работы с сеансами массажа через API.
+ * Позволяет получать, создавать, изменять и удалять сеансы массажа.
+ * Все методы доступны только пользователям с ролью ADMIN.
+ */
 package com.example.massagesalon;
 
 import jakarta.validation.Valid;
@@ -14,17 +19,34 @@ public class MassageSessionApiController {
 
     private final MassageSessionService service;
 
+    /**
+     * Конструктор контроллера, внедряет сервис для работы с сеансами массажа.
+     *
+     * @param service сервис для операций с сеансами массажа
+     */
     @Autowired
     public MassageSessionApiController(MassageSessionService service) {
         this.service = service;
     }
 
+    /**
+     * Получить все сеансы массажа или отфильтрованные по ключевому слову.
+     *
+     * @param keyword ключевое слово для поиска (необязательный параметр)
+     * @return список сеансов массажа
+     */
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public List<MassageSession> getAllSessions(@RequestParam(required = false) String keyword) {
         return service.listAll(keyword);
     }
 
+    /**
+     * Получить сеанс массажа по его ID.
+     *
+     * @param id идентификатор сеанса
+     * @return объект MassageSession или 404, если не найден
+     */
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MassageSession> getSessionById(@PathVariable Long id) {
@@ -36,6 +58,12 @@ public class MassageSessionApiController {
         }
     }
 
+    /**
+     * Создать новый сеанс массажа.
+     *
+     * @param session данные о сеансе
+     * @return созданный сеанс массажа
+     */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MassageSession> createSession(@Valid @RequestBody MassageSession session) {
@@ -43,6 +71,13 @@ public class MassageSessionApiController {
         return ResponseEntity.ok(session);
     }
 
+    /**
+     * Обновить существующий сеанс массажа.
+     *
+     * @param id идентификатор сеанса для обновления
+     * @param sessionDetails новые данные для сеанса
+     * @return обновленный сеанс или 404, если не найден
+     */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MassageSession> updateSession(@PathVariable Long id, @Valid @RequestBody MassageSession sessionDetails) {
@@ -63,6 +98,12 @@ public class MassageSessionApiController {
         return ResponseEntity.ok(session);
     }
 
+    /**
+     * Удалить сеанс массажа по ID.
+     *
+     * @param id идентификатор сеанса
+     * @return пустой ответ со статусом 204 или 404, если не найден
+     */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteSession(@PathVariable Long id) {

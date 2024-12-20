@@ -1,3 +1,7 @@
+/**
+ * MVC-контроллер для работы с сеансами массажа.
+ * Отвечает за рендеринг страниц и взаимодействие с пользователем через интерфейс MVC (Thymeleaf).
+ */
 package com.example.massagesalon;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,12 +26,25 @@ public class MassageSessionMvcController {
     private final MassageSessionService service;
     private final UserService userService;
 
+    /**
+     * Конструктор контроллера, внедряет сервисы для работы с сеансами и пользователями.
+     *
+     * @param service    сервис для управления сеансами массажа
+     * @param userService сервис для управления пользователями
+     */
     @Autowired
     public MassageSessionMvcController(MassageSessionService service, UserService userService) {
         this.service = service;
         this.userService = userService;
     }
 
+    /**
+     * Отображение главной страницы.
+     *
+     * @param model   модель для передачи данных в вид
+     * @param keyword слово для поиска (необязательно)
+     * @return имя шаблона "index"
+     */
     @GetMapping("/")
     public String viewHomePage(Model model, @RequestParam(required = false) String keyword) {
         List<MassageSession> listSessions = service.listAll(keyword);
@@ -37,6 +54,13 @@ public class MassageSessionMvcController {
         return "index";
     }
 
+    /**
+     * Страница для администратора с дополнительными функциями, включая статистику.
+     *
+     * @param model   модель
+     * @param keyword слово для поиска
+     * @return шаблон "admin/index"
+     */
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin")
     public String viewAdminPage(Model model, @RequestParam(required = false) String keyword) {
@@ -73,50 +97,49 @@ public class MassageSessionMvcController {
         return "admin/index";
     }
 
+    /**
+     * Страница со статистикой для администратора.
+     *
+     * @param model модель
+     * @return шаблон "statistics"
+     */
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/statistics")
     public String viewStatisticsPage(Model model) {
-        List<MassageSession> listSessions = service.listAll(null); // Получаем все сеансы
+        List<MassageSession> listSessions = service.listAll(null);
 
-        // Вычисляем среднюю цену
         double averagePrice = listSessions.stream()
                 .mapToDouble(MassageSession::getPrice)
                 .average()
                 .orElse(0.0);
 
-        // Находим максимальную продолжительность сеанса
         int maxDuration = listSessions.stream()
                 .mapToInt(MassageSession::getDuration)
                 .max()
                 .orElse(0);
 
-        // Находим минимальную продолжительность сеанса
         int minDuration = listSessions.stream()
                 .mapToInt(MassageSession::getDuration)
                 .min()
                 .orElse(0);
 
-        // Группируем количество сеансов по дате
         Map<String, Long> sessionCountByDate = listSessions.stream()
                 .collect(Collectors.groupingBy(
                         session -> session.getSessionDate().format(DateTimeFormatter.ISO_DATE),
                         Collectors.counting()));
         Map<String, Long> sortedSessionCountByDate = new TreeMap<>(sessionCountByDate);
 
-        // Находим самого частого клиента
         Optional<User> mostFrequentClient = listSessions.stream()
                 .collect(Collectors.groupingBy(MassageSession::getClient, Collectors.counting()))
                 .entrySet().stream()
                 .max(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey);
 
-        // Считаем общее количество уникальных клиентов
         long totalClients = listSessions.stream()
                 .map(MassageSession::getClient)
                 .distinct()
                 .count();
 
-        // Добавляем все статистические данные в модель
         model.addAttribute("averagePrice", averagePrice);
         model.addAttribute("maxDuration", maxDuration);
         model.addAttribute("minDuration", minDuration);
@@ -127,11 +150,23 @@ public class MassageSessionMvcController {
         return "statistics";
     }
 
+    /**
+     * Страница "О нас".
+     *
+     * @return имя шаблона "about"
+     */
     @GetMapping("/about")
     public String showAboutPage() {
         return "about";
     }
 
+    /**
+     * Страница сеансов для терапевта, отображает только его собственные сеансы.
+     *
+     * @param model     модель
+     * @param principal текущий аутентифицированный пользователь
+     * @return шаблон "therapist/sessions"
+     */
     @PreAuthorize("hasRole('THERAPIST')")
     @GetMapping("/therapist/sessions")
     public String therapistSessions(Model model, Principal principal) {
@@ -141,6 +176,13 @@ public class MassageSessionMvcController {
         return "therapist/sessions";
     }
 
+    /**
+     * Страница сеансов для клиента, отображает только его собственные сеансы.
+     *
+     * @param model     модель
+     * @param principal текущий аутентифицированный пользователь
+     * @return шаблон "client/sessions"
+     */
     @PreAuthorize("hasRole('CLIENT')")
     @GetMapping("/client/sessions")
     public String clientSessions(Model model, Principal principal) {
@@ -150,6 +192,12 @@ public class MassageSessionMvcController {
         return "client/sessions";
     }
 
+    /**
+     * Добавляет в модель имя текущего пользователя, если он аутентифицирован.
+     *
+     * @param model     модель
+     * @param principal текущий аутентифицированный пользователь
+     */
     @ModelAttribute
     public void addAttributes(Model model, Principal principal) {
         if (principal != null) {
@@ -157,8 +205,15 @@ public class MassageSessionMvcController {
         }
     }
 
+    /**
+     * Настройка преобразователей свойств для связей между сущностями.
+     * Позволяет связывать поля формы с сущностями User и Enum MassageType.
+     *
+     * @param binder связыватель данных
+     */
     @InitBinder
     public void initBinder(WebDataBinder binder) {
+        // Преобразователь для masseur
         binder.registerCustomEditor(User.class, "masseur", new PropertyEditorSupport() {
             @Override
             public void setAsText(String text) {
@@ -171,6 +226,7 @@ public class MassageSessionMvcController {
             }
         });
 
+        // Преобразователь для client
         binder.registerCustomEditor(User.class, "client", new PropertyEditorSupport() {
             @Override
             public void setAsText(String text) {
@@ -183,6 +239,7 @@ public class MassageSessionMvcController {
             }
         });
 
+        // Преобразователь для MassageType
         binder.registerCustomEditor(MassageType.class, new PropertyEditorSupport() {
             @Override
             public void setAsText(String text) throws IllegalArgumentException {
@@ -195,6 +252,12 @@ public class MassageSessionMvcController {
         });
     }
 
+    /**
+     * Страница просмотра всех пользователей (только для ADMIN).
+     *
+     * @param model модель
+     * @return шаблон "admin/users"
+     */
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/users")
     public String viewUsersPage(Model model) {
@@ -203,6 +266,12 @@ public class MassageSessionMvcController {
         return "admin/users";
     }
 
+    /**
+     * Форма создания нового сеанса массажа (только для ADMIN).
+     *
+     * @param model модель
+     * @return шаблон "new_session"
+     */
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/new")
     public String showNewSessionForm(Model model) {
@@ -212,6 +281,15 @@ public class MassageSessionMvcController {
         model.addAttribute("massageTypes", service.getAllServiceTypes());
         return "new_session";
     }
+
+    /**
+     * Сохранение нового сеанса в базе данных (только для ADMIN).
+     *
+     * @param session сеанс для сохранения
+     * @param result  результат валидации формы
+     * @param model   модель
+     * @return редирект на страницу "/admin" или повтор формы в случае ошибок
+     */
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/admin/save")
     public String saveSession(@Valid @ModelAttribute("massageSession") MassageSession session, BindingResult result, Model model) {
@@ -225,6 +303,13 @@ public class MassageSessionMvcController {
         return "redirect:/admin";
     }
 
+    /**
+     * Форма редактирования существующего сеанса массажа (только для ADMIN).
+     *
+     * @param id    идентификатор сеанса
+     * @param model модель
+     * @return шаблон "edit_session"
+     */
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/edit/{id}")
     public String showEditSessionForm(@PathVariable Long id, Model model) {
@@ -239,6 +324,12 @@ public class MassageSessionMvcController {
         return "edit_session";
     }
 
+    /**
+     * Удаление сеанса массажа по идентификатору (только для ADMIN).
+     *
+     * @param id идентификатор сеанса
+     * @return редирект на "/admin"
+     */
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/delete/{id}")
     public String deleteSession(@PathVariable Long id) {
